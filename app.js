@@ -1,6 +1,15 @@
+const prompt = require("prompt-sync")({ sigint: true });
 const fs = require('fs/promises')
 
 
+/**
+ * Builds a formatted view of a single photo by ID.
+ * Looks up the raw photo, adds a human-readable date, and resolves album IDs to names.
+ * Returns an object with id, filename, title, formattedDate, albumNames, and tags.
+ * Returns undefined if no photo is found for the given id.
+ * @param id Photo ID to format.
+ * @returns A formatted photo object or undefined.
+ */
 async function formattedPhoto(id) {
     let photo = await findPhoto(id)
 
@@ -24,6 +33,15 @@ async function formattedPhoto(id) {
 }
 
 
+
+/**
+ * Updates a photo's title and description by ID.
+ * Prompts the user for new values (keeps old values if inputs are empty),
+ * then writes the updated photos list back to disk.
+ * Does nothing if the photo is not found.
+ * @param id Photo ID to update.
+ * @returns Nothing.
+ */
 async function updatePhoto(id) {
     let photos = await readFile('photos.json')
     let newPhoto = await findPhoto(id)
@@ -50,6 +68,12 @@ async function updatePhoto(id) {
 
 
 
+/**
+ * Returns a list of formatted photos that belong to the given album name.
+ * Matching is currently case-sensitive because it uses a direct includes check.
+ * @param albumName The album name to filter by.
+ * @returns An array of formatted photos in that album.
+ */
 async function getAlbumPhotoList(albumName) {
     let photos = await readFile('photos.json')
 
@@ -67,6 +91,12 @@ async function getAlbumPhotoList(albumName) {
 }
 
 
+/**
+ * Adds a single tag to a photo by ID and saves the change.
+ * If the photo is not found, no changes are made.
+ * @param id Photo ID to tag.
+ * @returns Nothing.
+ */
 async function addTag(id) {
     let photos = await readFile('photos.json')
     let photo = await findPhoto(id)
@@ -88,7 +118,12 @@ async function addTag(id) {
 }
 
 
-
+/**
+ * Finds and returns a raw photo object (unformatted) by ID.
+ * Logs a message and returns undefined if not found.
+ * @param id Photo ID to search for.
+ * @returns The matching raw photo or undefined.
+ */
 async function findPhoto(id) {
     const photos = await readFile('photos.json')
 
@@ -102,6 +137,16 @@ async function findPhoto(id) {
     console.log('no photo found with this id')
 }
 
+
+
+
+/**
+ * Resolves an array of album IDs to their names (lowercased).
+ * If none are found, returns an object like { name: 'No Album for this ID' }.
+ * Consider normalizing this to always return an array for easier downstream use.
+ * @param ids List of album IDs to resolve.
+ * @returns An array of album names, or an object indicating none found.
+ */
 async function findAlbums(ids) {
     const albums = await readFile('albums.json')
 
@@ -122,6 +167,13 @@ async function findAlbums(ids) {
 }
 
 
+
+/**
+ * Reads a JSON file from disk and parses it.
+ * Throws if the file cannot be read or the contents are not valid JSON.
+ * @param fileName Path to the JSON file.
+ * @returns The parsed JSON content.
+ */
 async function readFile(fileName) {
     const jsonContent = await fs.readFile(fileName, 'utf8')
     const content = JSON.parse(jsonContent)
@@ -129,6 +181,13 @@ async function readFile(fileName) {
     return content
 }
 
+
+/**
+ * Serializes data as pretty JSON and writes it to photos.json.
+ * Overwrites the file and logs a confirmation on success.
+ * @param data Any serializable data structure to persist.
+ * @returns Nothing.
+ */
 async function writeFile(data) {
     const jsonContent = JSON.stringify(data, null, 2)
     await fs.writeFile('photos.json', jsonContent)
@@ -138,9 +197,13 @@ async function writeFile(data) {
 
 
 
-// Import prompt-sync
-const prompt = require("prompt-sync")({ sigint: true });
 
+
+
+/**
+ * Prints the interactive console menu for the photo manager.
+ * No return value.
+ */
 function showMenu() {
 
     console.log("\n=== Photo Management Menu ===");
@@ -151,8 +214,18 @@ function showMenu() {
     console.log("5. Exit");
 }
 
-let exit = false;
 
+
+
+let exit = false;
+/**
+ * Runs the interactive loop:
+ * - Shows the menu
+ * - Reads the user's choice
+ * - Performs the selected action until Exit is chosen
+ * Handles async operations for each menu item.
+ * No return value.
+ */
 async function runProgram() {
 
 
